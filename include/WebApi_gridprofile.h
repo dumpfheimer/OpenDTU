@@ -11,4 +11,5 @@ public:
 private:
     void onGridProfileStatus(AsyncWebServerRequest* request);
     void onGridProfileRawdata(AsyncWebServerRequest* request);
+    void onGridProfileWrite(AsyncWebServerRequest* request);
 };

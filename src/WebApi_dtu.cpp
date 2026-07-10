@@ -35,6 +35,8 @@ void WebApiDtuClass::applyDataTaskCb()
     Hoymiles.getRadioCmt()->setCountryMode(static_cast<CountryModeId_t>(config.Dtu.Cmt.CountryMode));
     Hoymiles.getRadioCmt()->setInverterTargetFrequency(config.Dtu.Cmt.Frequency);
     Hoymiles.setPollInterval(config.Dtu.PollInterval);
+    Hoymiles.setMaxRetransmitCount(config.Dtu.MaxRetransmitCount);
+    Hoymiles.setMaxResendCount(config.Dtu.MaxResendCount);
 }
 
 void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
@@ -54,6 +56,8 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
         static_cast<uint32_t>(config.Dtu.Serial & 0xFFFFFFFF));
     root["serial"] = buffer;
     root["pollinterval"] = config.Dtu.PollInterval;
+    root["max_retransmit_count"] = config.Dtu.MaxRetransmitCount;
+    root["max_resend_count"] = config.Dtu.MaxResendCount;
     root["nrf_enabled"] = Hoymiles.getRadioNrf()->isInitialized();
     root["nrf_palevel"] = config.Dtu.Nrf.PaLevel;
     root["cmt_enabled"] = Hoymiles.getRadioCmt()->isInitialized();
@@ -92,6 +96,8 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
 
     if (!(root["serial"].is<String>()
             && root["pollinterval"].is<uint32_t>()
+            && root["max_retransmit_count"].is<uint8_t>()
+            && root["max_resend_count"].is<uint8_t>()
             && root["nrf_palevel"].is<uint8_t>()
             && root["cmt_palevel"].is<int8_t>()
             && root["cmt_frequency"].is<uint32_t>()
@@ -115,6 +121,13 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
     if (root["pollinterval"].as<uint32_t>() == 0) {
         retMsg["message"] = "Poll interval must be greater zero!";
         retMsg["code"] = WebApiError::DtuPollZero;
+        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+        return;
+    }
+
+    if (root["max_retransmit_count"].as<uint8_t>() > 30 || root["max_resend_count"].as<uint8_t>() > 30) {
+        retMsg["message"] = "Retry counts must be between 0 and 30!";
+        retMsg["code"] = WebApiError::DtuInvalidRetryCount;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
         return;
     }
@@ -158,6 +171,8 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
         auto& config = guard.getConfig();
         config.Dtu.Serial = serial;
         config.Dtu.PollInterval = root["pollinterval"].as<uint32_t>();
+        config.Dtu.MaxRetransmitCount = root["max_retransmit_count"].as<uint8_t>();
+        config.Dtu.MaxResendCount = root["max_resend_count"].as<uint8_t>();
         config.Dtu.Nrf.PaLevel = root["nrf_palevel"].as<uint8_t>();
         config.Dtu.Cmt.PaLevel = root["cmt_palevel"].as<int8_t>();
         config.Dtu.Cmt.Frequency = root["cmt_frequency"].as<uint32_t>();

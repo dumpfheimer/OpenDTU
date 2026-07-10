@@ -67,6 +67,10 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     ESP_LOGI(TAG, "RF: Setting poll interval...");
     Hoymiles.setPollInterval(config.Dtu.PollInterval);
 
+    ESP_LOGI(TAG, "RF: Setting retry counts...");
+    Hoymiles.setMaxRetransmitCount(config.Dtu.MaxRetransmitCount);
+    Hoymiles.setMaxResendCount(config.Dtu.MaxResendCount);
+
     // Configure inverters
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         const auto& inv_cfg = config.Inverter[i];

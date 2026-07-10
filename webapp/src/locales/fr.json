@@ -121,7 +121,13 @@
         "10002": "Authentification réussie !",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse.5004",
-        "12001": "Le profil doit comporter entre 1 et {max} caractères !"
+        "12001": "Le profil doit comporter entre 1 et {max} caractères !",
+        "13001": "@:apiresponse.2001",
+        "13002": "@:apiresponse.5004",
+        "13003": "Les données du profil réseau ont une longueur invalide !",
+        "13004": "Vous devez confirmer les risques avant d'écrire le profil réseau !",
+        "13005": "L'écriture du profil réseau n'a pas pu être mise en file d'attente. Les commandes sont peut-être désactivées pour cet onduleur.",
+        "2006": "Le nombre de tentatives doit être compris entre 0 et 30 !"
     },
     "home": {
         "LiveData": "Données en direct",
@@ -200,7 +206,27 @@
         "Enabled": "@:wifistationinfo.Enabled",
         "Disabled": "@:wifistationinfo.Disabled",
         "GridprofileSupport": "Support the development",
-        "GridprofileSupportLong": "Please see <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">here</a> for further information."
+        "GridprofileSupportLong": "Please see <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">here</a> for further information.",
+        "WriteProfile": "Écrire le profil réseau (Avancé)",
+        "WriteWarningTitle": "Danger : paramètres liés à la sécurité",
+        "WriteWarningLong": "L'écriture d'un profil réseau écrase les paramètres de protection réseau de l'onduleur (seuils de tension/fréquence, détection d'îlotage, ...). Des valeurs incorrectes peuvent être <strong>dangereuses</strong>, endommager le matériel et enfreindre les règles de raccordement en vigueur dans votre pays. Ne continuez que si vous savez exactement ce que vous faites et êtes autorisé à modifier ces paramètres sur votre propre onduleur.",
+        "RawBytes": "Octets du profil réseau (hex)",
+        "RawBytesHint": "Octets hexadécimaux séparés par des espaces, pré-remplis avec le profil actuellement lu depuis l'onduleur. Ne modifiez que les valeurs à changer. Le CRC-16 final est recalculé automatiquement.",
+        "ResetBytes": "Réinitialiser au profil actuel",
+        "AcknowledgeRisk": "Je comprends les risques et suis autorisé à modifier le profil réseau de cet onduleur.",
+        "WriteButton": "Écrire le profil réseau",
+        "WriteSuccess": "L'onduleur a confirmé l'écriture — le profil a été accepté.",
+        "InvalidRaw": "Données invalides : saisissez de 6 à 256 octets hexadécimaux séparés par des espaces (00-ff).",
+        "EditHint": "Modifiez les valeurs ci-dessous et cochez la confirmation pour les écrire dans l'onduleur. Les valeurs modifiées sont surlignées, avec la valeur actuelle de l'appareil indiquée en dessous.",
+        "WasValue": "Appareil : {value}",
+        "ChangedCount": "{count} modifié(s)",
+        "AdvancedPaste": "Avancé : charger les octets bruts du profil",
+        "LoadPaste": "Charger dans l'éditeur",
+        "Loaded": "Profil brut chargé dans l'éditeur. Vérifiez les valeurs ci-dessus avant d'écrire.",
+        "RawPreview": "Octets à écrire (le CRC-16 final est recalculé automatiquement) :",
+        "WritePending": "Commande d'écriture envoyée — en attente de la confirmation de l'onduleur (jusqu'à ~20 s)…",
+        "WriteFailure": "L'onduleur n'a pas confirmé l'écriture. Non confirmée — vérifiez le journal de débogage.",
+        "WriteTimeout": "Aucune confirmation reçue dans le délai imparti. L'écriture n'a pas été confirmée."
     },
     "systeminfo": {
         "SystemInfo": "Informations sur le système",
@@ -414,7 +440,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Bas ({db} dBm)",
         "High": "Haut ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "MaxRetransmitCount": "Redemandes de fragment max.",
+        "MaxRetransmitCountHint": "Combien de fois OpenDTU redemande un fragment manquant avant d'abandonner une réponse partielle. Une valeur plus élevée améliore la fiabilité sur une liaison RF faible, au prix d'une interrogation plus lente. Défaut : 5.",
+        "MaxResendCount": "Renvois de requête max.",
+        "MaxResendCountHint": "Combien de fois OpenDTU renvoie la requête entière lorsque l'onduleur ne répond pas du tout. Une valeur plus élevée aide sur une liaison RF faible, au prix d'une interrogation plus lente. Défaut : 4."
     },
     "securityadmin": {
         "SecuritySettings": "Paramètres de sécurité",

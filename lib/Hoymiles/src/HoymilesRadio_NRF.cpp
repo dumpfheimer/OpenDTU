@@ -186,9 +186,15 @@ void HoymilesRadio_NRF::sendEsbPacket(CommandAbstract& cmd)
     openWritingPipe(s);
     _radio->setRetries(3, 15);
 
-    ESP_LOGD(TAG, "TX %s Channel: %" PRIu8 " --> %s",
-        cmd.getCommandName().c_str(), _radio->getChannel(), cmd.dumpDataPayload().c_str());
-    _radio->write(cmd.getDataPayload(), cmd.getDataSize());
+    // Most commands transmit a single frame. Multi-fragment commands (e.g. grid
+    // profile write) send several frames back to back before listening for the
+    // acknowledge.
+    for (uint8_t i = 0; i < cmd.getTxFragmentCount(); i++) {
+        cmd.prepareTxFragment(i);
+        ESP_LOGD(TAG, "TX %s Channel: %" PRIu8 " --> %s",
+            cmd.getCommandName().c_str(), _radio->getChannel(), cmd.dumpDataPayload().c_str());
+        _radio->write(cmd.getDataPayload(), cmd.getDataSize());
+    }
 
     _radio->setRetries(0, 0);
     openReadingPipe();

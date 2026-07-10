@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include <cstdint>
 #include <list>
+#include <vector>
 
 #define MAX_NAME_LENGTH 32
 
@@ -102,6 +103,11 @@ public:
     virtual bool resendPowerControlRequest() = 0;
     virtual bool sendChangeChannelRequest();
     virtual bool sendGridOnProFileParaRequest() = 0;
+
+    // Writes ("downloads") a grid profile to the inverter. 'gridProfile' is
+    // expected in the layout returned by GridProfileParser::getRawData().
+    // WARNING: this changes safety relevant grid protection parameters.
+    virtual bool sendGridProfileWriteRequest(const std::vector<uint8_t>& gridProfile) = 0;
 
     // This feature will limit the AC output instead of limiting the DC inputs.
     virtual bool supportsPowerDistributionLogic() = 0;

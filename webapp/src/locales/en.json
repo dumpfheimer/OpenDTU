@@ -121,7 +121,13 @@
         "10002": "Authentication successful!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse.5004",
-        "12001": "Profile name must between 1 and {max} characters long!"
+        "12001": "Profile name must between 1 and {max} characters long!",
+        "13001": "@:apiresponse.2001",
+        "13002": "@:apiresponse.5004",
+        "13003": "Grid profile data has an invalid length!",
+        "13004": "You must acknowledge the risks before writing the grid profile!",
+        "13005": "Grid profile write could not be queued. Commands may be disabled for this inverter.",
+        "2006": "Retry counts must be between 0 and 30!"
     },
     "home": {
         "LiveData": "Live Data",
@@ -200,7 +206,27 @@
         "Enabled": "@:wifistationinfo.Enabled",
         "Disabled": "@:wifistationinfo.Disabled",
         "GridprofileSupport": "Support the development",
-        "GridprofileSupportLong": "Please see <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">here</a> for further information."
+        "GridprofileSupportLong": "Please see <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">here</a> for further information.",
+        "WriteProfile": "Write Grid Profile (Advanced)",
+        "WriteWarningTitle": "Danger: safety-relevant settings",
+        "WriteWarningLong": "Writing a grid profile overwrites the inverter's grid protection parameters (voltage/frequency trip points, islanding detection, ...). Incorrect values can be <strong>dangerous</strong>, may damage equipment, and can violate the grid connection rules that apply in your country. Only proceed if you know exactly what you are doing and are authorised to change these settings on your own inverter.",
+        "RawBytes": "Grid profile bytes (hex)",
+        "RawBytesHint": "Space-separated hex bytes, pre-filled with the profile currently read from the inverter. Edit only the values you intend to change. The trailing CRC-16 is recalculated automatically.",
+        "ResetBytes": "Reset to current profile",
+        "AcknowledgeRisk": "I understand the risks and am authorised to change the grid profile of this inverter.",
+        "WriteButton": "Write grid profile",
+        "WriteSuccess": "The inverter acknowledged the write — the profile was accepted.",
+        "InvalidRaw": "Invalid data: enter 6 to 256 space-separated hex bytes (00-ff).",
+        "EditHint": "Edit the values below and tick the confirmation to write them to the inverter. Changed values are highlighted, with the device's current value shown underneath.",
+        "WasValue": "Device: {value}",
+        "ChangedCount": "{count} changed",
+        "AdvancedPaste": "Advanced: load raw profile bytes",
+        "LoadPaste": "Load into editor",
+        "Loaded": "Raw profile loaded into the editor. Review the values above before writing.",
+        "RawPreview": "Bytes to be written (the trailing CRC-16 is recalculated automatically):",
+        "WritePending": "Write sent — waiting for the inverter to acknowledge (up to ~20 s)…",
+        "WriteFailure": "The inverter did not acknowledge the write. It was not confirmed — check the debug log.",
+        "WriteTimeout": "No acknowledgement received within the timeout. The write was not confirmed."
     },
     "systeminfo": {
         "SystemInfo": "System Info",
@@ -427,7 +453,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Low ({db} dBm)",
         "High": "High ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "MaxRetransmitCount": "Max. fragment re-requests",
+        "MaxRetransmitCountHint": "How often OpenDTU re-requests a single missing fragment before giving up on a partial answer. Raising it improves reliability on a weak RF link, at the cost of slower polling. Default: 5.",
+        "MaxResendCount": "Max. request resends",
+        "MaxResendCountHint": "How often OpenDTU resends the whole request when the inverter does not answer at all. Raising it helps on a weak RF link, at the cost of slower polling. Default: 4."
     },
     "securityadmin": {
         "SecuritySettings": "Security Settings",

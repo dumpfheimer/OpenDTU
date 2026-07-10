@@ -453,6 +453,8 @@ std::list<GridProfileSection_t> GridProfileParser::getProfile() const
                 v.Name = itemDefinition.Name.data();
                 v.Unit = itemDefinition.Unit.data();
                 v.Value = value;
+                v.Offset = pos;
+                v.Divider = itemDefinition.Divider;
                 section.items.push_back(v);
 
                 pos += 2;
@@ -469,6 +471,16 @@ std::list<GridProfileSection_t> GridProfileParser::getProfile() const
 bool GridProfileParser::containsValidData() const
 {
     return _gridProfileLength > 6;
+}
+
+void GridProfileParser::setLastWriteCommandSuccess(const LastCommandSuccess status)
+{
+    _lastWriteCommandSuccess = status;
+}
+
+LastCommandSuccess GridProfileParser::getLastWriteCommandSuccess() const
+{
+    return _lastWriteCommandSuccess;
 }
 
 uint8_t GridProfileParser::getSectionSize(const uint8_t section_id, const uint8_t section_version)

@@ -50,6 +50,15 @@ public:
 
     virtual CommandAbstract* getRequestFrameCommand(const uint8_t frame_no);
 
+    // Multi-fragment TX support.
+    // Most commands transmit a single ESB frame. Commands that need to send a
+    // payload larger than one frame (e.g. writing a grid profile) override these:
+    // getTxFragmentCount() returns how many frames to transmit and
+    // prepareTxFragment() populates _payload/_payload_size for the given frame.
+    // The default implementation keeps the single-frame behaviour untouched.
+    virtual uint8_t getTxFragmentCount() const { return 1; }
+    virtual void prepareTxFragment(const uint8_t fragment_idx) { }
+
     virtual bool handleResponse(const fragment_t fragment[], const uint8_t max_fragment_id) = 0;
     virtual void gotTimeout();
 

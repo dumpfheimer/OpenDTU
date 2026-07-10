@@ -17,6 +17,7 @@ enum WebApiError {
     DtuInvalidPowerLevel,
     DtuInvalidCmtFrequency,
     DtuInvalidCmtCountry,
+    DtuInvalidRetryCount,
 
     FileBase = 3000,
     FileNotDeleted,
@@ -97,4 +98,11 @@ enum WebApiError {
 
     HardwareBase = 12000,
     HardwarePinMappingLength,
+
+    GridProfileBase = 13000,
+    GridProfileSerialZero,
+    GridProfileInvalidInverter,
+    GridProfileInvalidData,
+    GridProfileRiskNotAcknowledged,
+    GridProfileWriteFailed,
 };

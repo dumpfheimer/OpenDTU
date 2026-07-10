@@ -106,6 +106,8 @@ bool ConfigurationClass::write()
     JsonObject dtu = doc["dtu"].to<JsonObject>();
     dtu["serial"] = config.Dtu.Serial;
     dtu["poll_interval"] = config.Dtu.PollInterval;
+    dtu["max_retransmit_count"] = config.Dtu.MaxRetransmitCount;
+    dtu["max_resend_count"] = config.Dtu.MaxResendCount;
     dtu["nrf_pa_level"] = config.Dtu.Nrf.PaLevel;
     dtu["cmt_pa_level"] = config.Dtu.Cmt.PaLevel;
     dtu["cmt_frequency"] = config.Dtu.Cmt.Frequency;
@@ -295,6 +297,8 @@ bool ConfigurationClass::read()
     JsonObject dtu = doc["dtu"];
     config.Dtu.Serial = dtu["serial"] | DTU_SERIAL;
     config.Dtu.PollInterval = dtu["poll_interval"] | DTU_POLL_INTERVAL;
+    config.Dtu.MaxRetransmitCount = dtu["max_retransmit_count"] | DTU_MAX_RETRANSMIT_COUNT;
+    config.Dtu.MaxResendCount = dtu["max_resend_count"] | DTU_MAX_RESEND_COUNT;
     config.Dtu.Nrf.PaLevel = dtu["nrf_pa_level"] | DTU_NRF_PA_LEVEL;
     config.Dtu.Cmt.PaLevel = dtu["cmt_pa_level"] | DTU_CMT_PA_LEVEL;
     config.Dtu.Cmt.Frequency = dtu["cmt_frequency"] | DTU_CMT_FREQUENCY;

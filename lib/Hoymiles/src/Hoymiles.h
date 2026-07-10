@@ -33,6 +33,12 @@ public:
     uint32_t PollInterval() const;
     void setPollInterval(const uint32_t interval);
 
+    uint8_t getMaxRetransmitCount() const;
+    void setMaxRetransmitCount(const uint8_t count);
+
+    uint8_t getMaxResendCount() const;
+    void setMaxResendCount(const uint8_t count);
+
     bool isAllRadioIdle() const;
 
 private:
@@ -44,6 +50,11 @@ private:
 
     uint32_t _pollInterval = 0;
     uint32_t _lastPoll = 0;
+
+    // Radio retry limits (configurable). Defaults match the historic hardcoded
+    // MAX_RETRANSMIT_COUNT / MAX_RESEND_COUNT.
+    uint8_t _maxRetransmitCount = 5;
+    uint8_t _maxResendCount = 4;
 };
 
 extern HoymilesClass Hoymiles;

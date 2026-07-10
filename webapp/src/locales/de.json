@@ -121,7 +121,13 @@
         "10002": "Authentifizierung erfolgreich!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse.5004",
-        "12001": "Profilname muss zwischen 1 und {max} Zeichen lang sein!"
+        "12001": "Profilname muss zwischen 1 und {max} Zeichen lang sein!",
+        "13001": "@:apiresponse.2001",
+        "13002": "@:apiresponse.5004",
+        "13003": "Die Netzprofildaten haben eine ungültige Länge!",
+        "13004": "Sie müssen die Risiken bestätigen, bevor Sie das Netzprofil schreiben!",
+        "13005": "Das Schreiben des Netzprofils konnte nicht eingereiht werden. Befehle sind für diesen Wechselrichter möglicherweise deaktiviert.",
+        "2006": "Wiederholungsanzahl muss zwischen 0 und 30 liegen!"
     },
     "home": {
         "LiveData": "Live-Daten",
@@ -200,7 +206,27 @@
         "Enabled": "@:wifistationinfo.Enabled",
         "Disabled": "@:wifistationinfo.Disabled",
         "GridprofileSupport": "Unterstütze die Entwicklung",
-        "GridprofileSupportLong": "Weitere Informationen sind <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">hier</a> zu finden."
+        "GridprofileSupportLong": "Weitere Informationen sind <a href=\"https://github.com/tbnobody/OpenDTU/wiki/Grid-Profile-Parser\" target=\"_blank\">hier</a> zu finden.",
+        "WriteProfile": "Netzprofil schreiben (Erweitert)",
+        "WriteWarningTitle": "Gefahr: sicherheitsrelevante Einstellungen",
+        "WriteWarningLong": "Das Schreiben eines Netzprofils überschreibt die Netzschutzparameter des Wechselrichters (Spannungs-/Frequenzgrenzen, Inselnetzerkennung, ...). Falsche Werte können <strong>gefährlich</strong> sein, Geräte beschädigen und gegen die in Ihrem Land geltenden Netzanschlussregeln verstoßen. Fahren Sie nur fort, wenn Sie genau wissen, was Sie tun, und berechtigt sind, diese Einstellungen an Ihrem eigenen Wechselrichter zu ändern.",
+        "RawBytes": "Netzprofil-Bytes (hex)",
+        "RawBytesHint": "Durch Leerzeichen getrennte Hex-Bytes, vorbelegt mit dem aktuell aus dem Wechselrichter gelesenen Profil. Ändern Sie nur die gewünschten Werte. Die abschließende CRC-16 wird automatisch neu berechnet.",
+        "ResetBytes": "Auf aktuelles Profil zurücksetzen",
+        "AcknowledgeRisk": "Ich verstehe die Risiken und bin berechtigt, das Netzprofil dieses Wechselrichters zu ändern.",
+        "WriteButton": "Netzprofil schreiben",
+        "WriteSuccess": "Der Wechselrichter hat den Schreibvorgang bestätigt — das Profil wurde übernommen.",
+        "InvalidRaw": "Ungültige Daten: 6 bis 256 durch Leerzeichen getrennte Hex-Bytes (00-ff) eingeben.",
+        "EditHint": "Ändern Sie die Werte unten und bestätigen Sie, um sie in den Wechselrichter zu schreiben. Geänderte Werte sind hervorgehoben; der aktuelle Wert des Geräts wird darunter angezeigt.",
+        "WasValue": "Gerät: {value}",
+        "ChangedCount": "{count} geändert",
+        "AdvancedPaste": "Erweitert: Rohe Profil-Bytes laden",
+        "LoadPaste": "In Editor laden",
+        "Loaded": "Rohprofil in den Editor geladen. Prüfen Sie die Werte oben vor dem Schreiben.",
+        "RawPreview": "Zu schreibende Bytes (die abschließende CRC-16 wird automatisch neu berechnet):",
+        "WritePending": "Schreibbefehl gesendet — warte auf Bestätigung des Wechselrichters (bis zu ~20 s)…",
+        "WriteFailure": "Der Wechselrichter hat den Schreibvorgang nicht bestätigt. Nicht bestätigt — bitte das Debug-Log prüfen.",
+        "WriteTimeout": "Innerhalb des Zeitlimits keine Bestätigung erhalten. Der Schreibvorgang wurde nicht bestätigt."
     },
     "systeminfo": {
         "SystemInfo": "Systeminformationen",
@@ -427,7 +453,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Niedrig ({db} dBm)",
         "High": "Hoch ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "MaxRetransmitCount": "Max. Fragment-Wiederanforderungen",
+        "MaxRetransmitCountHint": "Wie oft OpenDTU ein einzelnes fehlendes Fragment erneut anfordert, bevor eine unvollständige Antwort aufgegeben wird. Höhere Werte verbessern die Zuverlässigkeit bei schwacher Funkverbindung, verlangsamen aber die Abfrage. Standard: 5.",
+        "MaxResendCount": "Max. Anfrage-Wiederholungen",
+        "MaxResendCountHint": "Wie oft OpenDTU die gesamte Anfrage erneut sendet, wenn der Wechselrichter gar nicht antwortet. Höhere Werte helfen bei schwacher Funkverbindung, verlangsamen aber die Abfrage. Standard: 4."
     },
     "securityadmin": {
         "SecuritySettings": "Sicherheitseinstellungen",

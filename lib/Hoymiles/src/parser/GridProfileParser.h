@@ -23,6 +23,8 @@ struct GridProfileItem_t {
     String Name;
     String Unit;
     float Value;
+    uint16_t Offset; // byte offset of the (int16) value within the raw profile payload
+    float Divider; // Value == static_cast<int16_t>(raw) / Divider
 };
 
 struct GridProfileSection_t {
@@ -45,12 +47,18 @@ public:
 
     bool containsValidData() const;
 
+    void setLastWriteCommandSuccess(const LastCommandSuccess status);
+    LastCommandSuccess getLastWriteCommandSuccess() const;
+
 private:
     static uint8_t getSectionSize(const uint8_t section_id, const uint8_t section_version);
     static int16_t getSectionStart(const uint8_t section_id, const uint8_t section_version);
 
     uint8_t _payloadGridProfile[GRID_PROFILE_SIZE] = {};
     uint8_t _gridProfileLength = 0;
+
+    // Set to OK because we have to assume nothing is done at startup
+    LastCommandSuccess _lastWriteCommandSuccess = CMD_OK;
 
     static const std::array<const ProfileType_t, PROFILE_TYPE_COUNT> _profileTypes;
     static const std::array<const GridProfileValue_t, SECTION_VALUE_COUNT> _profileValues;

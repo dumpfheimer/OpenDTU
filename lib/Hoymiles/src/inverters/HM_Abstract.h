@@ -16,6 +16,7 @@ public:
     bool sendRestartControlRequest();
     bool resendPowerControlRequest();
     bool sendGridOnProFileParaRequest();
+    bool sendGridProfileWriteRequest(const std::vector<uint8_t>& gridProfile) override;
     bool supportsPowerDistributionLogic() override;
 
 protected:

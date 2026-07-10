@@ -2,6 +2,8 @@ export interface GridProfileValue {
     n: string;
     u: string;
     v: number;
+    o?: number; // byte offset of the int16 value within the raw profile payload
+    d?: number; // divider: value == int16(raw) / d
 }
 
 export interface GridProfileSection {

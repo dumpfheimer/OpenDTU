@@ -9,6 +9,7 @@
 #include "commands/DevInfoAllCommand.h"
 #include "commands/DevInfoSimpleCommand.h"
 #include "commands/GridOnProFilePara.h"
+#include "commands/GridProfileWriteCommand.h"
 #include "commands/PowerControlCommand.h"
 #include "commands/RealTimeRunDataCommand.h"
 #include "commands/SystemConfigParaCommand.h"
@@ -190,6 +191,27 @@ bool HM_Abstract::sendGridOnProFileParaRequest()
 
     auto cmd = _radio->prepareCommand<GridOnProFilePara>(this);
     cmd->setTime(now);
+    _radio->enqueCommand(cmd);
+
+    return true;
+}
+
+bool HM_Abstract::sendGridProfileWriteRequest(const std::vector<uint8_t>& gridProfile)
+{
+    if (!getEnableCommands()) {
+        return false;
+    }
+
+    if (gridProfile.size() < 6 || gridProfile.size() > GRID_PROFILE_WRITE_MAX_SIZE) {
+        return false;
+    }
+
+    auto cmd = _radio->prepareCommand<GridProfileWriteCommand>(this);
+    if (!cmd->setGridProfile(gridProfile.data(), static_cast<uint16_t>(gridProfile.size()))) {
+        return false;
+    }
+
+    GridProfile()->setLastWriteCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;

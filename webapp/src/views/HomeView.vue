@@ -353,7 +353,11 @@
     </ModalDialog>
 
     <ModalDialog modalId="gridProfileView" :title="$t('home.GridProfile')" :loading="gridProfileLoading">
-        <GridProfile :gridProfileList="gridProfileList" :gridProfileRawList="gridProfileRawList" />
+        <GridProfile
+            :serial="gridProfileSerial"
+            :gridProfileList="gridProfileList"
+            :gridProfileRawList="gridProfileRawList"
+        />
     </ModalDialog>
 
     <ModalDialog modalId="limitSettingView" :title="$t('home.LimitSettings')" :loading="limitSettingLoading">
@@ -573,6 +577,7 @@ export default defineComponent({
             devInfoList: {} as DevInfoStatus,
             devInfoLoading: true,
             gridProfileView: {} as bootstrap.Modal,
+            gridProfileSerial: '',
             gridProfileList: {} as GridProfileStatus,
             gridProfileRawList: {} as GridProfileRawdata,
             gridProfileLoading: true,
@@ -779,6 +784,7 @@ export default defineComponent({
         },
         onShowGridProfile(serial: string) {
             this.gridProfileLoading = true;
+            this.gridProfileSerial = serial;
             fetch('/api/gridprofile/status?inv=' + serial, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {

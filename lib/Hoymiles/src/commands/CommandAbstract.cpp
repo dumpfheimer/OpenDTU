@@ -27,6 +27,7 @@ Source Address: 80 12 23 04
      Target Addr   Source Addr      CRC8
 */
 #include "CommandAbstract.h"
+#include "../Hoymiles.h"
 #include "../Utils.h"
 #include "../inverters/InverterAbstract.h"
 #include "crc.h"
@@ -129,12 +130,12 @@ void CommandAbstract::gotTimeout()
 
 uint8_t CommandAbstract::getMaxResendCount() const
 {
-    return MAX_RESEND_COUNT;
+    return Hoymiles.getMaxResendCount();
 }
 
 uint8_t CommandAbstract::getMaxRetransmitCount() const
 {
-    return MAX_RETRANSMIT_COUNT;
+    return Hoymiles.getMaxRetransmitCount();
 }
 
 bool CommandAbstract::areSameParameter(CommandAbstract* other)

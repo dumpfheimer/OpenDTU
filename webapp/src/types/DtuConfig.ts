@@ -9,6 +9,8 @@ export interface CountryDef {
 export interface DtuConfig {
     serial: string;
     pollinterval: number;
+    max_retransmit_count: number;
+    max_resend_count: number;
     nrf_enabled: boolean;
     nrf_palevel: number;
     cmt_enabled: boolean;

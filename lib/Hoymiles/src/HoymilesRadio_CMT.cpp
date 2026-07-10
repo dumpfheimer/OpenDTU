@@ -276,11 +276,17 @@ void HoymilesRadio_CMT::sendEsbPacket(CommandAbstract& cmd)
         cmtSwitchDtuFreq(getInvBootFrequency());
     }
 
-    ESP_LOGD(TAG, "TX %s %.2f MHz --> %s",
-        cmd.getCommandName().c_str(), getFrequencyFromChannel(_radio->getChannel()) / 1000000.0, cmd.dumpDataPayload().c_str());
+    // Most commands transmit a single frame. Multi-fragment commands (e.g. grid
+    // profile write) send several frames back to back before listening for the
+    // acknowledge.
+    for (uint8_t i = 0; i < cmd.getTxFragmentCount(); i++) {
+        cmd.prepareTxFragment(i);
+        ESP_LOGD(TAG, "TX %s %.2f MHz --> %s",
+            cmd.getCommandName().c_str(), getFrequencyFromChannel(_radio->getChannel()) / 1000000.0, cmd.dumpDataPayload().c_str());
 
-    if (!_radio->write(cmd.getDataPayload(), cmd.getDataSize())) {
-        ESP_LOGE(TAG, "TX SPI Timeout");
+        if (!_radio->write(cmd.getDataPayload(), cmd.getDataSize())) {
+            ESP_LOGE(TAG, "TX SPI Timeout");
+        }
     }
     cmtSwitchDtuFreq(_inverterTargetFrequency);
     _radio->startListening();

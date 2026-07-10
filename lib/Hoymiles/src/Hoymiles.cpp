@@ -270,3 +270,23 @@ void HoymilesClass::setPollInterval(const uint32_t interval)
 {
     _pollInterval = interval;
 }
+
+uint8_t HoymilesClass::getMaxRetransmitCount() const
+{
+    return _maxRetransmitCount;
+}
+
+void HoymilesClass::setMaxRetransmitCount(const uint8_t count)
+{
+    _maxRetransmitCount = count;
+}
+
+uint8_t HoymilesClass::getMaxResendCount() const
+{
+    return _maxResendCount;
+}
+
+void HoymilesClass::setMaxResendCount(const uint8_t count)
+{
+    _maxResendCount = count;
+}

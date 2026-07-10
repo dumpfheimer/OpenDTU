@@ -88,6 +88,8 @@
 #define DTU_CMT_PA_LEVEL 0
 #define DTU_CMT_FREQUENCY 865000000U
 #define DTU_CMT_COUNTRY_MODE 0U
+#define DTU_MAX_RETRANSMIT_COUNT 5U // re-request attempts for a missing fragment (partial answers)
+#define DTU_MAX_RESEND_COUNT 4U // whole-request resend attempts when no answer at all
 
 #define MQTT_HASS_ENABLED false
 #define MQTT_HASS_EXPIRE true

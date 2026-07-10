@@ -29,6 +29,24 @@
                     :postfix="$t('dtuadmin.Seconds')"
                 />
 
+                <InputElement
+                    :label="$t('dtuadmin.MaxRetransmitCount')"
+                    v-model="dtuConfigList.max_retransmit_count"
+                    type="number"
+                    min="0"
+                    max="30"
+                    :tooltip="$t('dtuadmin.MaxRetransmitCountHint')"
+                />
+
+                <InputElement
+                    :label="$t('dtuadmin.MaxResendCount')"
+                    v-model="dtuConfigList.max_resend_count"
+                    type="number"
+                    min="0"
+                    max="30"
+                    :tooltip="$t('dtuadmin.MaxResendCountHint')"
+                />
+
                 <div class="row mb-3" v-if="dtuConfigList.nrf_enabled">
                     <label for="inputNrfPaLevel" class="col-sm-2 col-form-label">
                         {{ $t('dtuadmin.NrfPaLevel') }}
