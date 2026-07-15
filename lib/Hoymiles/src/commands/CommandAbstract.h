@@ -62,6 +62,11 @@ public:
     virtual bool handleResponse(const fragment_t fragment[], const uint8_t max_fragment_id) = 0;
     virtual void gotTimeout();
 
+    // If true after a successful response, the radio re-sends instead of completing
+    // the command (e.g. grid profile write keeps poking so the inverter can persist
+    // to EEPROM). Default: complete on success.
+    virtual bool wantsMoreSends() const { return false; }
+
     // Sets the amount how often the specific command is resent if all fragments where missing
     virtual uint8_t getMaxResendCount() const;
 

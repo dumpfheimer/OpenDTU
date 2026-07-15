@@ -50,6 +50,15 @@ public:
     void setEnableCommands(const bool enabled);
     bool getEnableCommands() const;
 
+    // Anti-theft password sent in the password field (bytes 20-23) of MultiData
+    // requests to authenticate to a password-protected inverter. Default 0.
+    void setPassword(const uint32_t password);
+    uint32_t getPassword() const;
+
+    // EXPERIMENTAL: send a raw command frame (research tool, sacrificial devices
+    // only). See RawWriteCommand. crc16Mode: 0 none / 1 bytes 10.. / 2 bytes 9..
+    bool sendRawWriteRequest(const uint8_t command, const std::vector<uint8_t>& body, const uint8_t crc16Mode);
+
     void setReachableThreshold(const uint8_t threshold);
     uint8_t getReachableThreshold() const;
 
@@ -135,6 +144,8 @@ private:
 
     bool _enablePolling = true;
     bool _enableCommands = true;
+
+    uint32_t _password = 0;
 
     uint8_t _reachableThreshold = 3;
 

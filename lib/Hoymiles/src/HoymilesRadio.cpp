@@ -106,6 +106,14 @@ void HoymilesRadio::handleReceivedPackage()
 
                 sendRetransmitPacket(verifyResult);
 
+            } else if (cmd->wantsMoreSends()) {
+                // Successful, but the command wants to keep (re)transmitting (e.g.
+                // grid profile write persistence tail). Re-send the final packet
+                // without completing the command.
+                ESP_LOGD(TAG, "Success, resending (persist)");
+                inv->clearRxFragmentBuffer();
+                sendLastPacketAgain();
+
             } else {
                 // Successful received all packages
                 ESP_LOGI(TAG, "Success");

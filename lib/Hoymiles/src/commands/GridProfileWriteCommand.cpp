@@ -33,6 +33,10 @@ trailing CRC16.
 #include "../inverters/InverterAbstract.h"
 #include "crc.h"
 #include <cstring>
+#include <esp_log.h>
+
+#undef TAG
+static const char* TAG = "hoymiles";
 
 GridProfileWriteCommand::GridProfileWriteCommand(InverterAbstract* inv, const uint64_t router_address)
     : CommandAbstract(inv, router_address)
@@ -162,17 +166,47 @@ bool GridProfileWriteCommand::handleResponse(const fragment_t fragment[], const 
     // (from the Hoymiles DevControl reply, documented by the reverse engineering
     // community): 0 = success, 3 = EEPROM error, 4 = unsupported command,
     // 7 = abnormal parameter length. The successful capture shows 0x00 here, so
-    // treat anything non-zero as a failed write rather than reporting success.
-    if (fragment[0].len < 1 || fragment[0].fragment[0] != 0) {
+    // treat anything non-zero as a failed write and log the code for diagnosis.
+    const uint8_t result = fragment[0].len >= 1 ? fragment[0].fragment[0] : 0xff;
+    if (result != 0) {
+        ESP_LOGW(TAG, "Grid profile write rejected by inverter: result code 0x%02x "
+                      "(3=EEPROM error, 4=unsupported command, 7=abnormal length)",
+            result);
         _inv->GridProfile()->setLastWriteCommandSuccess(CMD_NOK);
         return false;
     }
 
+    // The ACK echoes back the profile ID + version it adopted (bytes 2..5 of the
+    // payload == the first 4 bytes of the profile we sent). Verify it matches so we
+    // know the inverter accepted *our* profile, not a stale/other one.
+    if (fragment[0].len >= 6 && memcmp(&fragment[0].fragment[2], _gridProfile, 4) != 0) {
+        ESP_LOGW(TAG, "Grid profile write ACK signature mismatch: sent %02X%02X%02X%02X, got %02X%02X%02X%02X",
+            _gridProfile[0], _gridProfile[1], _gridProfile[2], _gridProfile[3],
+            fragment[0].fragment[2], fragment[0].fragment[3], fragment[0].fragment[4], fragment[0].fragment[5]);
+        _inv->GridProfile()->setLastWriteCommandSuccess(CMD_NOK);
+        return false;
+    }
+
+    // Confirmed. Mark success and keep re-sending the final frame for a short tail
+    // (see wantsMoreSends) so the inverter can finish persisting to EEPROM.
     _inv->GridProfile()->setLastWriteCommandSuccess(CMD_OK);
+    _confirmed = true;
+    if (_persistUntil == 0) {
+        _persistUntil = millis() + GRID_PROFILE_WRITE_PERSIST_MS;
+    }
     return true;
+}
+
+bool GridProfileWriteCommand::wantsMoreSends() const
+{
+    return _confirmed && (millis() < _persistUntil);
 }
 
 void GridProfileWriteCommand::gotTimeout()
 {
-    _inv->GridProfile()->setLastWriteCommandSuccess(CMD_NOK);
+    // Do not downgrade a confirmed write to failure if the persist tail ends
+    // without a further answer (the inverter has already acknowledged).
+    if (!_confirmed) {
+        _inv->GridProfile()->setLastWriteCommandSuccess(CMD_NOK);
+    }
 }

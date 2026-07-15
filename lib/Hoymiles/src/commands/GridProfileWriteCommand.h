@@ -6,6 +6,10 @@
 
 #define GRID_PROFILE_WRITE_MAX_SIZE 256
 #define GRID_PROFILE_WRITE_FRAGMENT_SIZE 16
+// After the first successful ACK, keep re-sending the final frame for this long so
+// the inverter can persist the profile to EEPROM (the original DTU repeats ~20s;
+// the inverter keeps acknowledging throughout, so a short tail is enough here).
+#define GRID_PROFILE_WRITE_PERSIST_MS 2500
 
 class GridProfileWriteCommand : public CommandAbstract {
 public:
@@ -26,6 +30,10 @@ public:
     virtual bool handleResponse(const fragment_t fragment[], const uint8_t max_fragment_id);
     virtual void gotTimeout();
 
+    // True after a confirmed write while still within the EEPROM-persist tail, so
+    // the radio keeps re-sending the final frame instead of completing.
+    virtual bool wantsMoreSends() const;
+
     // The inverter needs to be re-poked with the final frame until it has
     // persisted the profile and answers (community-documented as ~every 100ms for
     // ~20s). With the ~200ms RX window per attempt, ~100 retries covers ~20s.
@@ -39,4 +47,7 @@ private:
 
     uint8_t _gridProfile[GRID_PROFILE_WRITE_MAX_SIZE] = {};
     uint16_t _gridProfileLength = 0;
+
+    bool _confirmed = false; // a valid success ACK has been received
+    uint32_t _persistUntil = 0; // millis() deadline for the persist tail
 };

@@ -3,6 +3,7 @@
  * Copyright (C) 2022-2026 Thomas Basler and others
  */
 #include "InverterAbstract.h"
+#include "commands/RawWriteCommand.h"
 #include "crc.h"
 #include <cstring>
 #include <esp_log.h>
@@ -98,6 +99,24 @@ void InverterAbstract::setEnableCommands(const bool enabled)
 bool InverterAbstract::getEnableCommands() const
 {
     return _enableCommands;
+}
+
+void InverterAbstract::setPassword(const uint32_t password)
+{
+    _password = password;
+}
+
+uint32_t InverterAbstract::getPassword() const
+{
+    return _password;
+}
+
+bool InverterAbstract::sendRawWriteRequest(const uint8_t command, const std::vector<uint8_t>& body, const uint8_t crc16Mode)
+{
+    auto cmd = _radio->prepareCommand<RawWriteCommand>(this);
+    cmd->setRaw(command, body.data(), static_cast<uint8_t>(body.size()), crc16Mode);
+    _radio->enqueCommand(cmd);
+    return true;
 }
 
 void InverterAbstract::setReachableThreshold(const uint8_t threshold)

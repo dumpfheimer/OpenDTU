@@ -105,4 +105,9 @@ enum WebApiError {
     GridProfileInvalidData,
     GridProfileRiskNotAcknowledged,
     GridProfileWriteFailed,
+
+    ExperimentalBase = 14000,
+    ExperimentalRiskNotAcknowledged,
+    ExperimentalInvalidInverter,
+    ExperimentalInvalidData,
 };

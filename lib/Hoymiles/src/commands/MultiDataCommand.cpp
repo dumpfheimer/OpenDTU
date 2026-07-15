@@ -26,6 +26,7 @@ Command structure:
 ID   Target Addr   Source Addr   Idx  DT   ?    Time          Gap             Password      CRC16   CRC8
 */
 #include "MultiDataCommand.h"
+#include "../inverters/InverterAbstract.h"
 #include "crc.h"
 
 MultiDataCommand::MultiDataCommand(InverterAbstract* inv, const uint64_t router_address, const uint8_t data_type, const time_t time)
@@ -41,10 +42,14 @@ MultiDataCommand::MultiDataCommand(InverterAbstract* inv, const uint64_t router_
     _payload[17] = 0x00; // Gap
     _payload[18] = 0x00;
     _payload[19] = 0x00;
-    _payload[20] = 0x00; // Password
-    _payload[21] = 0x00; // Password
-    _payload[22] = 0x00; // Password
-    _payload[23] = 0x00; // Password
+    // Anti-theft password (per inverter; default 0 -> byte-identical to before).
+    // Byte order is big-endian here and UNVERIFIED until a real password frame is
+    // observed; flip the configured value if authentication does not take.
+    const uint32_t password = _inv->getPassword();
+    _payload[20] = static_cast<uint8_t>(password >> 24);
+    _payload[21] = static_cast<uint8_t>(password >> 16);
+    _payload[22] = static_cast<uint8_t>(password >> 8);
+    _payload[23] = static_cast<uint8_t>(password);
 
     udpateCRC();
 
