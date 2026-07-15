@@ -52,5 +52,10 @@ bool GridOnProFilePara::handleResponse(const fragment_t fragment[], const uint8_
     }
     _inv->GridProfile()->endAppendFragment();
     _inv->GridProfile()->setLastUpdate(millis());
+
+    // If a just-written profile is awaiting confirmation, compare this fresh
+    // read-back against the written bytes and resolve the write status. No-op
+    // otherwise (routine reads do not touch the write status).
+    _inv->GridProfile()->finishWriteVerification();
     return true;
 }

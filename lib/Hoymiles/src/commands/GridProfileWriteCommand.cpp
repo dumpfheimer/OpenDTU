@@ -169,13 +169,22 @@ bool GridProfileWriteCommand::handleResponse(const fragment_t fragment[], const 
         return false;
     }
 
-    // Confirmed. Mark success and keep re-sending the final frame for a short tail
-    // (see wantsMoreSends) so the inverter can finish persisting to EEPROM.
-    _inv->GridProfile()->setLastWriteCommandSuccess(CMD_OK);
-    _confirmed = true;
+    // The inverter accepted the profile: status OK, echoed signature matches, and
+    // it validated the whole-profile CRC16 before answering (so it holds a
+    // byte-exact copy of what we sent). But "accepted" is not yet proof the values
+    // survived the EEPROM commit, and a single ACK under marginal RF is weak
+    // evidence. So we do NOT latch success here. Instead we keep the write status at
+    // PENDING and hand the written bytes to the verifier: it drops the cached
+    // profile so the poll loop reads the stored profile back, and once that
+    // read-back arrives finishWriteVerification() resolves the status to OK
+    // (read-back matches what we wrote) or NOK (mismatch / not persisted).
     if (_persistUntil == 0) {
+        _inv->GridProfile()->beginWriteVerification(_gridProfile, _gridProfileLength);
+        // Keep re-sending the final frame for a short tail (see wantsMoreSends) so
+        // the inverter can finish persisting before the read-back happens.
         _persistUntil = millis() + GRID_PROFILE_WRITE_PERSIST_MS;
     }
+    _confirmed = true;
     return true;
 }
 

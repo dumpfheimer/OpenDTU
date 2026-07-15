@@ -357,6 +357,7 @@
             :serial="gridProfileSerial"
             :gridProfileList="gridProfileList"
             :gridProfileRawList="gridProfileRawList"
+            @profile-refreshed="gridProfileList = $event"
         />
     </ModalDialog>
 

@@ -56,6 +56,16 @@ public:
     void setLastWriteCommandSuccess(const LastCommandSuccess status);
     LastCommandSuccess getLastWriteCommandSuccess() const;
 
+    // Grid-profile write verification (read-back check). The write command calls
+    // beginWriteVerification() with the exact bytes it sent once the inverter
+    // acknowledges: it stores those bytes, leaves the write status at CMD_PENDING
+    // and drops the cached profile so the poll loop reads the stored profile back.
+    // finishWriteVerification() is called after each successful read and, if a
+    // verification is pending, compares the read-back profile to the written bytes
+    // and resolves the status to CMD_OK (byte-exact match) or CMD_NOK (mismatch).
+    void beginWriteVerification(const uint8_t* expected, const uint16_t length);
+    void finishWriteVerification();
+
 private:
     static uint8_t getSectionSize(const uint8_t section_id, const uint8_t section_version);
     static int16_t getSectionStart(const uint8_t section_id, const uint8_t section_version);
@@ -65,6 +75,12 @@ private:
 
     // Set to OK because we have to assume nothing is done at startup
     LastCommandSuccess _lastWriteCommandSuccess = CMD_OK;
+
+    // Pending read-back verification of a just-written profile (see
+    // begin/finishWriteVerification). _expectedProfile holds the bytes we wrote.
+    bool _writeVerifyPending = false;
+    uint8_t _expectedProfile[GRID_PROFILE_SIZE] = {};
+    uint8_t _expectedProfileLength = 0;
 
     static const std::array<const ProfileType_t, PROFILE_TYPE_COUNT> _profileTypes;
     static const std::array<const GridProfileValue_t, SECTION_VALUE_COUNT> _profileValues;

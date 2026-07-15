@@ -307,6 +307,9 @@ export default defineComponent({
         gridProfileList: { type: Object as PropType<GridProfileStatus>, required: true },
         gridProfileRawList: { type: Object as PropType<GridProfileRawdata>, required: true },
     },
+    // Emitted with the freshly read-back profile once a write has been verified, so
+    // the parent can refresh the displayed profile without reopening the dialog.
+    emits: ['profile-refreshed'],
     data() {
         return {
             presets: gridProfilePresets as GridProfilePreset[],
@@ -616,7 +619,9 @@ export default defineComponent({
             this.writePolling = true;
             let elapsed = 0;
             const intervalMs = 2000;
-            const maxMs = 26000; // a bit beyond the ~20s inverter retry/persist window
+            // Success is now confirmed by reading the profile back and comparing it,
+            // so allow for the write ack + EEPROM persist tail + a read-back cycle.
+            const maxMs = 45000;
             this.pollTimer = window.setInterval(() => {
                 elapsed += intervalMs;
                 fetch('/api/gridprofile/status?inv=' + this.serial, { headers: authHeader() })
@@ -624,6 +629,10 @@ export default defineComponent({
                     .then((data) => {
                         const status = data.write_status;
                         if (status === 'Ok') {
+                            // The status response carries the freshly read-back
+                            // profile; hand it to the parent so the table updates to
+                            // the verified values instead of the pre-write ones.
+                            this.$emit('profile-refreshed', data);
                             this.finishWrite('success', 'gridprofile.WriteSuccess');
                         } else if (status === 'Failure') {
                             this.finishWrite('danger', 'gridprofile.WriteFailure');

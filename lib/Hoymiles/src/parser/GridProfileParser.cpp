@@ -496,6 +496,66 @@ LastCommandSuccess GridProfileParser::getLastWriteCommandSuccess() const
     return _lastWriteCommandSuccess;
 }
 
+void GridProfileParser::beginWriteVerification(const uint8_t* expected, const uint16_t length)
+{
+    HOY_SEMAPHORE_TAKE();
+    // A profile longer than the read buffer can never be read back for comparison;
+    // clamp and let the length check in finishWriteVerification() flag it. Real
+    // profiles are well within GRID_PROFILE_SIZE.
+    _expectedProfileLength = (length > GRID_PROFILE_SIZE) ? GRID_PROFILE_SIZE : static_cast<uint8_t>(length);
+    memcpy(_expectedProfile, expected, _expectedProfileLength);
+    _writeVerifyPending = true;
+    // Drop the cached (now stale) profile so the poll loop reads the freshly
+    // written one back. clearBuffer() does not lock, so it is safe under the lock.
+    clearBuffer();
+    HOY_SEMAPHORE_GIVE();
+
+    // Keep reporting PENDING until the read-back arrives and is compared.
+    _lastWriteCommandSuccess = CMD_PENDING;
+}
+
+void GridProfileParser::finishWriteVerification()
+{
+    if (!_writeVerifyPending) {
+        return;
+    }
+    _writeVerifyPending = false;
+
+    HOY_SEMAPHORE_TAKE();
+    const uint8_t expLen = _expectedProfileLength;
+    const uint8_t readLen = _gridProfileLength;
+    bool bytesMatch = (readLen == expLen);
+    uint16_t diffAt = 0;
+    uint8_t wroteByte = 0, readByte = 0;
+    if (bytesMatch) {
+        for (uint16_t i = 0; i < expLen; i++) {
+            if (_payloadGridProfile[i] != _expectedProfile[i]) {
+                bytesMatch = false;
+                diffAt = i;
+                wroteByte = _expectedProfile[i];
+                readByte = _payloadGridProfile[i];
+                break;
+            }
+        }
+    }
+    HOY_SEMAPHORE_GIVE();
+
+    if (bytesMatch) {
+        _lastWriteCommandSuccess = CMD_OK;
+        ESP_LOGI(TAG, "Grid profile write verified: read-back matches the written profile (%u bytes)",
+            static_cast<unsigned>(expLen));
+    } else {
+        _lastWriteCommandSuccess = CMD_NOK;
+        if (readLen != expLen) {
+            ESP_LOGW(TAG, "Grid profile write verification FAILED: length mismatch (wrote %u, read back %u)",
+                static_cast<unsigned>(expLen), static_cast<unsigned>(readLen));
+        } else {
+            ESP_LOGW(TAG, "Grid profile write verification FAILED: byte %u differs (wrote 0x%02X, read 0x%02X)",
+                static_cast<unsigned>(diffAt), wroteByte, readByte);
+        }
+    }
+}
+
 uint8_t GridProfileParser::getSectionSize(const uint8_t section_id, const uint8_t section_version)
 {
     uint8_t count = 0;
