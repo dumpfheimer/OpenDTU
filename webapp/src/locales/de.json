@@ -233,7 +233,9 @@
         "WillWritePreset": "Es wird geschrieben: {name}",
         "EditManually": "Werte manuell bearbeiten",
         "DiscardEdits": "Änderungen verwerfen",
-        "ManualEditDanger": "Sie bearbeiten einzelne Netzschutzwerte. Falsche Werte können unsicher sein und gegen Ihren Netzcode verstoßen – ändern Sie nur Werte, die Sie vollständig verstehen, und nur auf von Ihrem Netzbetreiber genehmigte Werte."
+        "ManualEditDanger": "Sie bearbeiten einzelne Netzschutzwerte. Falsche Werte können unsicher sein und gegen Ihren Netzcode verstoßen – ändern Sie nur Werte, die Sie vollständig verstehen, und nur auf von Ihrem Netzbetreiber genehmigte Werte.",
+        "ChangeProfile": "Netzprofil ändern",
+        "Cancel": "Abbrechen"
     },
     "systeminfo": {
         "SystemInfo": "Systeminformationen",

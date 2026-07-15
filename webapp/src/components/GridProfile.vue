@@ -18,29 +18,8 @@
             </tbody>
         </table>
 
-        <BootstrapAlert :show="true" variant="danger">
-            <h4 class="info-heading"><BIconExclamationTriangle class="fs-2" />&nbsp;{{
-                $t('gridprofile.WriteWarningTitle')
-            }}</h4>
-            <div v-html="$t('gridprofile.WriteWarningLong')"></div>
-        </BootstrapAlert>
-
-        <!-- Primary path: choose a verified profile from the list -->
-        <div class="mb-3">
-            <label class="form-label" for="gpPreset">{{ $t('gridprofile.ChooseProfile') }}</label>
-            <select id="gpPreset" class="form-select" v-model="selectedPreset" @change="onSelectPreset">
-                <option value="">{{ $t('gridprofile.PresetCurrent') }}</option>
-                <option v-for="preset in presets" :key="preset.key" :value="preset.key">{{ preset.name }}</option>
-            </select>
-            <div class="form-text">{{ $t('gridprofile.ChooseProfileHint') }}</div>
-        </div>
-
-        <BootstrapAlert :show="presetLoaded" variant="warning">
-            {{ $t('gridprofile.WillWritePreset', { name: selectedPresetName }) }}
-        </BootstrapAlert>
-
         <!-- Decoded view of the profile currently on the inverter. Read-only unless
-             manual editing has been explicitly enabled (and no preset is selected). -->
+             the user has entered write mode and explicitly enabled manual editing. -->
         <div class="accordion" id="accordionProfile">
             <div
                 class="accordion-item accordion-table"
@@ -125,6 +104,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- View mode: opening the dialog just shows the profile read-only.
+             Writing is behind an explicit step so the warning and edit controls
+             don't greet users who only want to look. -->
+        <div v-if="!writeMode" class="mt-3">
+            <button type="button" class="btn btn-outline-danger" @click="enterWriteMode()">
+                <BIconExclamationTriangle />&nbsp;{{ $t('gridprofile.ChangeProfile') }}
+            </button>
+        </div>
+
+        <template v-if="writeMode">
+            <BootstrapAlert :show="true" variant="danger" class="mt-3">
+                <h4 class="info-heading"><BIconExclamationTriangle class="fs-2" />&nbsp;{{
+                    $t('gridprofile.WriteWarningTitle')
+                }}</h4>
+                <div v-html="$t('gridprofile.WriteWarningLong')"></div>
+            </BootstrapAlert>
+
+            <!-- Primary path: choose a verified profile from the list -->
+            <div class="mb-3">
+                <label class="form-label" for="gpPreset">{{ $t('gridprofile.ChooseProfile') }}</label>
+                <select id="gpPreset" class="form-select" v-model="selectedPreset" @change="onSelectPreset">
+                    <option value="">{{ $t('gridprofile.PresetCurrent') }}</option>
+                    <option v-for="preset in presets" :key="preset.key" :value="preset.key">{{ preset.name }}</option>
+                </select>
+                <div class="form-text">{{ $t('gridprofile.ChooseProfileHint') }}</div>
+            </div>
+
+            <BootstrapAlert :show="presetLoaded" variant="warning">
+                {{ $t('gridprofile.WillWritePreset', { name: selectedPresetName }) }}
+            </BootstrapAlert>
 
         <!-- Manual editing is hidden behind an explicit danger action -->
         <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
@@ -213,6 +223,13 @@
             </div>
         </div>
 
+            <div class="mt-3">
+                <button type="button" class="btn btn-outline-secondary" @click="exitWriteMode()">
+                    {{ $t('gridprofile.Cancel') }}
+                </button>
+            </div>
+        </template>
+
         <br />
 
         <div class="accordion" id="accordionDev">
@@ -276,6 +293,7 @@ export default defineComponent({
     data() {
         return {
             presets: gridProfilePresets as GridProfilePreset[],
+            writeMode: false,
             selectedPreset: '',
             editMode: false,
             workingRaw: [] as number[],
@@ -306,9 +324,10 @@ export default defineComponent({
         selectedPresetName(): string {
             return this.presets.find((p) => p.key === this.selectedPreset)?.name ?? '';
         },
-        // Structured per-value editing is only valid on the device's own profile.
+        // Structured per-value editing is only valid in write mode, on the
+        // device's own profile (not a foreign preset).
         editing(): boolean {
-            return this.editMode && !this.presetLoaded;
+            return this.writeMode && this.editMode && !this.presetLoaded;
         },
         changeCount(): number {
             if (!this.editing) {
@@ -342,8 +361,21 @@ export default defineComponent({
         workingHex(): string {
             return this.workingRaw.map(toHex).join(' ');
         },
+        enterWriteMode() {
+            this.writeMode = true;
+        },
+        exitWriteMode() {
+            this.writeMode = false;
+            this.selectedPreset = '';
+            this.editMode = false;
+            const raw = this.gridProfileRawList.raw;
+            this.workingRaw = raw ? raw.slice() : [];
+            this.acknowledgeRisk = false;
+            this.showWriteAlert = false;
+        },
         resetEditable() {
             this.stopPolling();
+            this.writeMode = false;
             this.selectedPreset = '';
             this.editMode = false;
             const raw = this.gridProfileRawList.raw;

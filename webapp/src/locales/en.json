@@ -233,7 +233,9 @@
         "WillWritePreset": "You are about to write: {name}",
         "EditManually": "Edit values manually",
         "DiscardEdits": "Discard edits",
-        "ManualEditDanger": "You are editing individual grid-protection values. Wrong values can be unsafe and may violate your grid code — only change values you fully understand, and only to values authorized by your grid operator."
+        "ManualEditDanger": "You are editing individual grid-protection values. Wrong values can be unsafe and may violate your grid code — only change values you fully understand, and only to values authorized by your grid operator.",
+        "ChangeProfile": "Change grid profile",
+        "Cancel": "Cancel"
     },
     "systeminfo": {
         "SystemInfo": "System Info",

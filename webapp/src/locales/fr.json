@@ -233,7 +233,9 @@
         "WillWritePreset": "Vous allez écrire : {name}",
         "EditManually": "Modifier les valeurs manuellement",
         "DiscardEdits": "Annuler les modifications",
-        "ManualEditDanger": "Vous modifiez des valeurs de protection réseau individuelles. Des valeurs incorrectes peuvent être dangereuses et enfreindre votre code de réseau — ne modifiez que des valeurs que vous comprenez parfaitement, et uniquement vers des valeurs autorisées par votre gestionnaire de réseau."
+        "ManualEditDanger": "Vous modifiez des valeurs de protection réseau individuelles. Des valeurs incorrectes peuvent être dangereuses et enfreindre votre code de réseau — ne modifiez que des valeurs que vous comprenez parfaitement, et uniquement vers des valeurs autorisées par votre gestionnaire de réseau.",
+        "ChangeProfile": "Modifier le profil réseau",
+        "Cancel": "Annuler"
     },
     "systeminfo": {
         "SystemInfo": "Informations sur le système",
