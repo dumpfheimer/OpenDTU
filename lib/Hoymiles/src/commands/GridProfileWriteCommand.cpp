@@ -134,31 +134,13 @@ void GridProfileWriteCommand::prepareTxFragment(const uint8_t fragment_idx)
 
 bool GridProfileWriteCommand::handleResponse(const fragment_t fragment[], const uint8_t max_fragment_id)
 {
-    // Verify the acknowledge frame the same way MultiDataCommand does: the main
-    // command byte must be the request command with the MSB set and the CRC16 at
-    // the end of the last fragment must match.
-    uint16_t crc = 0xffff, crcRcv = 0;
-
-    for (uint8_t i = 0; i < max_fragment_id; i++) {
-        if (fragment[i].mainCmd != (_payload[0] | 0x80)) {
-            return false;
-        }
-
-        if (i == max_fragment_id - 1) {
-            // The last fragment must at least hold the two CRC16 bytes; guard
-            // against an unsigned underflow on a malformed (too short) frame.
-            if (fragment[i].len < 2) {
-                return false;
-            }
-            crc = crc16(fragment[i].fragment, fragment[i].len - 2, crc);
-            crcRcv = (fragment[i].fragment[fragment[i].len - 2] << 8)
-                | (fragment[i].fragment[fragment[i].len - 1]);
-        } else {
-            crc = crc16(fragment[i].fragment, fragment[i].len, crc);
-        }
-    }
-
-    if (crc != crcRcv) {
+    // Verify the acknowledge frame: the main command byte must be the request
+    // command with the MSB set, and the ACK's trailing CRC16 must check out. This
+    // is the same integrity check the MultiData reads use (shared helper). For this
+    // single-fragment ACK the per-frame CRC8 already covered these bytes, so the
+    // CRC16 here is belt-and-suspenders; the meaningful confirmation is the result
+    // code and echoed profile signature verified below.
+    if (!checkPayloadCrc16(fragment, max_fragment_id, _payload[0] | 0x80)) {
         return false;
     }
 

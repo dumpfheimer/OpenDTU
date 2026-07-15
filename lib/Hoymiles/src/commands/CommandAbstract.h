@@ -78,6 +78,15 @@ public:
     virtual bool areSameParameter(CommandAbstract* other);
 
 protected:
+    // Validates a multi-fragment response that ends in a trailing CRC16: every
+    // fragment must carry the expected main command byte, and the CRC16 stored in
+    // the last two bytes of the final fragment must match a CRC16 computed over the
+    // whole reassembled payload. Shared by every response of that shape (all the
+    // MultiData reads, the grid-profile write acknowledge). Note this only proves
+    // the reassembled payload is internally consistent; for a single-fragment reply
+    // the per-frame CRC8 already covers the same bytes, so it is redundant there.
+    static bool checkPayloadCrc16(const fragment_t fragment[], const uint8_t max_fragment_id, const uint8_t expectedMainCmd);
+
     uint8_t _payload[RF_LEN];
     uint8_t _payload_size;
     uint32_t _timeout;

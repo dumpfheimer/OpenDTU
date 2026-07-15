@@ -143,3 +143,30 @@ bool CommandAbstract::areSameParameter(CommandAbstract* other)
     return this->getCommandName() == other->getCommandName()
         && this->_targetAddress == other->getTargetAddress();
 }
+
+bool CommandAbstract::checkPayloadCrc16(const fragment_t fragment[], const uint8_t max_fragment_id, const uint8_t expectedMainCmd)
+{
+    uint16_t crc = 0xffff, crcRcv = 0;
+
+    for (uint8_t i = 0; i < max_fragment_id; i++) {
+        // Doublecheck that this is the answer package for the sent command.
+        if (fragment[i].mainCmd != expectedMainCmd) {
+            return false;
+        }
+
+        if (i == max_fragment_id - 1) {
+            // Last packet: it must at least hold the two CRC16 bytes; guard against
+            // an unsigned underflow on a malformed (too short) frame.
+            if (fragment[i].len < 2) {
+                return false;
+            }
+            crc = crc16(fragment[i].fragment, fragment[i].len - 2, crc);
+            crcRcv = (fragment[i].fragment[fragment[i].len - 2] << 8)
+                | (fragment[i].fragment[fragment[i].len - 1]);
+        } else {
+            crc = crc16(fragment[i].fragment, fragment[i].len, crc);
+        }
+    }
+
+    return crc == crcRcv;
+}

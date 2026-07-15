@@ -92,26 +92,8 @@ CommandAbstract* MultiDataCommand::getRequestFrameCommand(const uint8_t frame_no
 
 bool MultiDataCommand::handleResponse(const fragment_t fragment[], const uint8_t max_fragment_id)
 {
-    // All fragments are available --> Check CRC
-    uint16_t crc = 0xffff, crcRcv = 0;
-
-    for (uint8_t i = 0; i < max_fragment_id; i++) {
-        // Doublecheck if correct answer package
-        if (fragment[i].mainCmd != (_payload[0] | 0x80)) {
-            return false;
-        }
-
-        if (i == max_fragment_id - 1) {
-            // Last packet
-            crc = crc16(fragment[i].fragment, fragment[i].len - 2, crc);
-            crcRcv = (fragment[i].fragment[fragment[i].len - 2] << 8)
-                | (fragment[i].fragment[fragment[i].len - 1]);
-        } else {
-            crc = crc16(fragment[i].fragment, fragment[i].len, crc);
-        }
-    }
-
-    return crc == crcRcv;
+    // All fragments are available --> Check the trailing CRC16 over the whole payload.
+    return checkPayloadCrc16(fragment, max_fragment_id, _payload[0] | 0x80);
 }
 
 void MultiDataCommand::udpateCRC()
