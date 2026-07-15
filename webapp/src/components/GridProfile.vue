@@ -25,8 +25,22 @@
             <div v-html="$t('gridprofile.WriteWarningLong')"></div>
         </BootstrapAlert>
 
-        <p class="text-body-secondary">{{ $t('gridprofile.EditHint') }}</p>
+        <!-- Primary path: choose a verified profile from the list -->
+        <div class="mb-3">
+            <label class="form-label" for="gpPreset">{{ $t('gridprofile.ChooseProfile') }}</label>
+            <select id="gpPreset" class="form-select" v-model="selectedPreset" @change="onSelectPreset">
+                <option value="">{{ $t('gridprofile.PresetCurrent') }}</option>
+                <option v-for="preset in presets" :key="preset.key" :value="preset.key">{{ preset.name }}</option>
+            </select>
+            <div class="form-text">{{ $t('gridprofile.ChooseProfileHint') }}</div>
+        </div>
 
+        <BootstrapAlert :show="presetLoaded" variant="warning">
+            {{ $t('gridprofile.WillWritePreset', { name: selectedPresetName }) }}
+        </BootstrapAlert>
+
+        <!-- Decoded view of the profile currently on the inverter. Read-only unless
+             manual editing has been explicitly enabled (and no preset is selected). -->
         <div class="accordion" id="accordionProfile">
             <div
                 class="accordion-item accordion-table"
@@ -43,7 +57,7 @@
                         :aria-controls="`collapse${index}`"
                     >
                         {{ section.name }}
-                        <span v-if="sectionChangeCount(section) > 0" class="badge text-bg-warning ms-2">
+                        <span v-if="editing && sectionChangeCount(section) > 0" class="badge text-bg-warning ms-2">
                             {{ sectionChangeCount(section) }}
                         </span>
                     </button>
@@ -52,24 +66,15 @@
                     <div class="accordion-body">
                         <table class="table table-hover">
                             <tbody>
-                                <tr v-for="value in section.items" :key="value.n" :class="{ 'table-warning': isChanged(value) }">
+                                <tr
+                                    v-for="value in section.items"
+                                    :key="value.n"
+                                    :class="{ 'table-warning': editing && isChanged(value) }"
+                                >
                                     <th>{{ value.n }}</th>
                                     <td>
-                                        <!-- Not editable (unknown offset): show the value read-only -->
-                                        <template v-if="value.o === undefined">
-                                            <template v-if="value.u != 'bool'">
-                                                {{ $n(value.v, 'decimal') }} {{ value.u }}
-                                            </template>
-                                            <StatusBadge
-                                                v-else
-                                                :status="value.v == 1"
-                                                true_text="gridprofile.Enabled"
-                                                false_text="gridprofile.Disabled"
-                                            />
-                                        </template>
-
-                                        <!-- Boolean flag -> switch -->
-                                        <template v-else-if="value.u == 'bool'">
+                                        <!-- Editable boolean flag -->
+                                        <template v-if="editing && value.o !== undefined && value.u == 'bool'">
                                             <div class="form-check form-switch mb-0">
                                                 <input
                                                     class="form-check-input"
@@ -82,8 +87,8 @@
                                             </div>
                                         </template>
 
-                                        <!-- Numeric value -> number input with unit -->
-                                        <template v-else>
+                                        <!-- Editable numeric value -->
+                                        <template v-else-if="editing && value.o !== undefined">
                                             <div class="input-group input-group-sm gridprofile-value">
                                                 <input
                                                     type="number"
@@ -96,7 +101,20 @@
                                             </div>
                                         </template>
 
-                                        <div v-if="isChanged(value)" class="form-text text-warning-emphasis mt-1">
+                                        <!-- Read-only display -->
+                                        <template v-else>
+                                            <template v-if="value.u != 'bool'">
+                                                {{ $n(value.v, 'decimal') }} {{ value.u }}
+                                            </template>
+                                            <StatusBadge
+                                                v-else
+                                                :status="value.v == 1"
+                                                true_text="gridprofile.Enabled"
+                                                false_text="gridprofile.Disabled"
+                                            />
+                                        </template>
+
+                                        <div v-if="editing && isChanged(value)" class="form-text text-warning-emphasis mt-1">
                                             {{ $t('gridprofile.WasValue', { value: $n(value.v, 'decimal') }) }}
                                         </div>
                                     </td>
@@ -108,14 +126,29 @@
             </div>
         </div>
 
+        <!-- Manual editing is hidden behind an explicit danger action -->
         <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="resetEditable()">
-                {{ $t('gridprofile.ResetBytes') }}
+            <button
+                v-if="!editMode && !presetLoaded"
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                @click="enableEditMode()"
+            >
+                <BIconExclamationTriangle />&nbsp;{{ $t('gridprofile.EditManually') }}
             </button>
-            <span v-if="changeCount > 0" class="badge text-bg-warning">
-                {{ $t('gridprofile.ChangedCount', { count: changeCount }) }}
-            </span>
+            <template v-if="editing">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @click="discardEdits()">
+                    {{ $t('gridprofile.DiscardEdits') }}
+                </button>
+                <span v-if="changeCount > 0" class="badge text-bg-warning">
+                    {{ $t('gridprofile.ChangedCount', { count: changeCount }) }}
+                </span>
+            </template>
         </div>
+
+        <BootstrapAlert :show="editing" variant="danger" class="mt-2">
+            {{ $t('gridprofile.ManualEditDanger') }}
+        </BootstrapAlert>
 
         <div class="form-check mt-3 mb-2">
             <input class="form-check-input" type="checkbox" v-model="acknowledgeRisk" id="gpAckRisk" />
@@ -216,6 +249,7 @@
 
 <script lang="ts">
 import BootstrapAlert from '@/components/BootstrapAlert.vue';
+import { gridProfilePresets, type GridProfilePreset } from '@/types/GridProfilePresets';
 import type { GridProfileRawdata } from '@/types/GridProfileRawdata';
 import type { GridProfileSection, GridProfileStatus, GridProfileValue } from '@/types/GridProfileStatus';
 import { authHeader, handleResponse } from '@/utils/authentication';
@@ -241,6 +275,9 @@ export default defineComponent({
     },
     data() {
         return {
+            presets: gridProfilePresets as GridProfilePreset[],
+            selectedPreset: '',
+            editMode: false,
             workingRaw: [] as number[],
             pasteRaw: '',
             acknowledgeRisk: false,
@@ -263,7 +300,20 @@ export default defineComponent({
             }
             return raw.reduce((sum, x) => sum + x, 0) > 0;
         },
+        presetLoaded(): boolean {
+            return this.selectedPreset !== '';
+        },
+        selectedPresetName(): string {
+            return this.presets.find((p) => p.key === this.selectedPreset)?.name ?? '';
+        },
+        // Structured per-value editing is only valid on the device's own profile.
+        editing(): boolean {
+            return this.editMode && !this.presetLoaded;
+        },
         changeCount(): number {
+            if (!this.editing) {
+                return 0;
+            }
             let count = 0;
             for (const section of this.gridProfileList.sections ?? []) {
                 count += this.sectionChangeCount(section);
@@ -272,7 +322,7 @@ export default defineComponent({
         },
     },
     watch: {
-        // Re-initialise the editor whenever a (new) profile is loaded into the dialog.
+        // Re-initialise whenever a (new) profile is loaded into the dialog.
         gridProfileRawList: {
             handler() {
                 this.resetEditable();
@@ -294,10 +344,38 @@ export default defineComponent({
         },
         resetEditable() {
             this.stopPolling();
+            this.selectedPreset = '';
+            this.editMode = false;
             const raw = this.gridProfileRawList.raw;
             this.workingRaw = raw ? raw.slice() : [];
             this.pasteRaw = this.workingHex();
             this.acknowledgeRisk = false;
+            this.showWriteAlert = false;
+        },
+        onSelectPreset() {
+            this.showWriteAlert = false;
+            if (!this.presetLoaded) {
+                // Back to the device's current profile (editable).
+                const raw = this.gridProfileRawList.raw;
+                this.workingRaw = raw ? raw.slice() : [];
+            } else {
+                const preset = this.presets.find((p) => p.key === this.selectedPreset);
+                if (preset) {
+                    this.workingRaw = preset.raw.slice();
+                    this.editMode = false; // cannot structure-edit a foreign preset
+                }
+            }
+            this.pasteRaw = this.workingHex();
+        },
+        enableEditMode() {
+            if (!this.presetLoaded) {
+                this.editMode = true;
+            }
+        },
+        discardEdits() {
+            const raw = this.gridProfileRawList.raw;
+            this.workingRaw = raw ? raw.slice() : [];
+            this.editMode = false;
             this.showWriteAlert = false;
         },
         // Decode the (signed int16) value currently held in the working buffer.
@@ -369,6 +447,8 @@ export default defineComponent({
                 this.showWriteAlert = true;
                 return;
             }
+            this.selectedPreset = '';
+            this.editMode = false;
             this.workingRaw = bytes;
             this.writeAlertType = 'info';
             this.writeAlertMessage = this.$t('gridprofile.Loaded');

@@ -226,7 +226,14 @@
         "RawPreview": "Zu schreibende Bytes (die abschließende CRC-16 wird automatisch neu berechnet):",
         "WritePending": "Schreibbefehl gesendet — warte auf Bestätigung des Wechselrichters (bis zu ~20 s)…",
         "WriteFailure": "Der Wechselrichter hat den Schreibvorgang nicht bestätigt. Nicht bestätigt — bitte das Debug-Log prüfen.",
-        "WriteTimeout": "Innerhalb des Zeitlimits keine Bestätigung erhalten. Der Schreibvorgang wurde nicht bestätigt."
+        "WriteTimeout": "Innerhalb des Zeitlimits keine Bestätigung erhalten. Der Schreibvorgang wurde nicht bestätigt.",
+        "ChooseProfile": "Netzprofil",
+        "PresetCurrent": "— Aktuelles Profil auf dem Wechselrichter —",
+        "ChooseProfileHint": "Wählen Sie das geprüfte Profil für Ihr Land und Ihren Netzbetreiber und schreiben Sie es unten. Im Zweifel fragen Sie Ihren Netzbetreiber.",
+        "WillWritePreset": "Es wird geschrieben: {name}",
+        "EditManually": "Werte manuell bearbeiten",
+        "DiscardEdits": "Änderungen verwerfen",
+        "ManualEditDanger": "Sie bearbeiten einzelne Netzschutzwerte. Falsche Werte können unsicher sein und gegen Ihren Netzcode verstoßen – ändern Sie nur Werte, die Sie vollständig verstehen, und nur auf von Ihrem Netzbetreiber genehmigte Werte."
     },
     "systeminfo": {
         "SystemInfo": "Systeminformationen",

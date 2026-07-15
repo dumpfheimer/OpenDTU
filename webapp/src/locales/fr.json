@@ -226,7 +226,14 @@
         "RawPreview": "Octets à écrire (le CRC-16 final est recalculé automatiquement) :",
         "WritePending": "Commande d'écriture envoyée — en attente de la confirmation de l'onduleur (jusqu'à ~20 s)…",
         "WriteFailure": "L'onduleur n'a pas confirmé l'écriture. Non confirmée — vérifiez le journal de débogage.",
-        "WriteTimeout": "Aucune confirmation reçue dans le délai imparti. L'écriture n'a pas été confirmée."
+        "WriteTimeout": "Aucune confirmation reçue dans le délai imparti. L'écriture n'a pas été confirmée.",
+        "ChooseProfile": "Profil réseau",
+        "PresetCurrent": "— Profil actuel sur l'onduleur —",
+        "ChooseProfileHint": "Choisissez le profil vérifié pour votre pays et votre gestionnaire de réseau, puis écrivez-le ci-dessous. En cas de doute, demandez à votre gestionnaire de réseau.",
+        "WillWritePreset": "Vous allez écrire : {name}",
+        "EditManually": "Modifier les valeurs manuellement",
+        "DiscardEdits": "Annuler les modifications",
+        "ManualEditDanger": "Vous modifiez des valeurs de protection réseau individuelles. Des valeurs incorrectes peuvent être dangereuses et enfreindre votre code de réseau — ne modifiez que des valeurs que vous comprenez parfaitement, et uniquement vers des valeurs autorisées par votre gestionnaire de réseau."
     },
     "systeminfo": {
         "SystemInfo": "Informations sur le système",

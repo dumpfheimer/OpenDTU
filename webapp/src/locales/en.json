@@ -226,7 +226,14 @@
         "RawPreview": "Bytes to be written (the trailing CRC-16 is recalculated automatically):",
         "WritePending": "Write sent — waiting for the inverter to acknowledge (up to ~20 s)…",
         "WriteFailure": "The inverter did not acknowledge the write. It was not confirmed — check the debug log.",
-        "WriteTimeout": "No acknowledgement received within the timeout. The write was not confirmed."
+        "WriteTimeout": "No acknowledgement received within the timeout. The write was not confirmed.",
+        "ChooseProfile": "Grid profile",
+        "PresetCurrent": "— Current profile on the inverter —",
+        "ChooseProfileHint": "Pick the verified profile for your country and grid operator, then write it below. If unsure which one applies, ask your grid operator (Netzbetreiber).",
+        "WillWritePreset": "You are about to write: {name}",
+        "EditManually": "Edit values manually",
+        "DiscardEdits": "Discard edits",
+        "ManualEditDanger": "You are editing individual grid-protection values. Wrong values can be unsafe and may violate your grid code — only change values you fully understand, and only to values authorized by your grid operator."
     },
     "systeminfo": {
         "SystemInfo": "System Info",
