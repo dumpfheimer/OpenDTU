@@ -23,7 +23,7 @@
         <div class="accordion" id="accordionProfile">
             <div
                 class="accordion-item accordion-table"
-                v-for="(section, index) in gridProfileList.sections"
+                v-for="(section, index) in displaySections"
                 :key="index"
             >
                 <h2 class="accordion-header">
@@ -36,7 +36,7 @@
                         :aria-controls="`collapse${index}`"
                     >
                         {{ section.name }}
-                        <span v-if="editing && sectionChangeCount(section) > 0" class="badge text-bg-warning ms-2">
+                        <span v-if="comparing && sectionChangeCount(section) > 0" class="badge text-bg-warning ms-2">
                             {{ sectionChangeCount(section) }}
                         </span>
                     </button>
@@ -45,11 +45,7 @@
                     <div class="accordion-body">
                         <table class="table table-hover">
                             <tbody>
-                                <tr
-                                    v-for="value in section.items"
-                                    :key="value.n"
-                                    :class="{ 'table-warning': editing && isChanged(value) }"
-                                >
+                                <tr v-for="value in section.items" :key="value.n">
                                     <th>{{ value.n }}</th>
                                     <td>
                                         <!-- Editable boolean flag -->
@@ -80,21 +76,37 @@
                                             </div>
                                         </template>
 
-                                        <!-- Read-only display -->
+                                        <!-- Read-only display (the value to be written) -->
                                         <template v-else>
-                                            <template v-if="value.u != 'bool'">
-                                                {{ $n(value.v, 'decimal') }} {{ value.u }}
-                                            </template>
+                                            <span
+                                                v-if="value.u != 'bool'"
+                                                :class="{ 'fw-semibold': comparing && rowChanged(value) }"
+                                            >
+                                                {{ $n(displayValue(value), 'decimal') }} {{ value.u }}
+                                            </span>
                                             <StatusBadge
                                                 v-else
-                                                :status="value.v == 1"
+                                                :status="displayValue(value) == 1"
                                                 true_text="gridprofile.Enabled"
                                                 false_text="gridprofile.Disabled"
                                             />
                                         </template>
 
-                                        <div v-if="editing && isChanged(value)" class="form-text text-warning-emphasis mt-1">
-                                            {{ $t('gridprofile.WasValue', { value: $n(value.v, 'decimal') }) }}
+                                        <!-- Current value on the inverter, shown when it differs.
+                                             The icon + current-value line signals the change without
+                                             relying on colour. -->
+                                        <div v-if="comparing && rowChanged(value)" class="form-text text-body-secondary mt-1">
+                                            <BIconArrowReturnRight class="me-1" />
+                                            <template v-if="deviceValue(value) !== undefined">
+                                                {{ $t('gridprofile.CurrentValue') }}:
+                                                <template v-if="value.u == 'bool'">
+                                                    {{ deviceValue(value) === 1 ? $t('gridprofile.Enabled') : $t('gridprofile.Disabled') }}
+                                                </template>
+                                                <template v-else>
+                                                    {{ $n(deviceValue(value) ?? 0, 'decimal') }} {{ value.u }}
+                                                </template>
+                                            </template>
+                                            <template v-else>{{ $t('gridprofile.NewParam') }}</template>
                                         </div>
                                     </td>
                                 </tr>
@@ -135,6 +147,10 @@
             <BootstrapAlert :show="presetLoaded" variant="warning">
                 {{ $t('gridprofile.WillWritePreset', { name: selectedPresetName }) }}
             </BootstrapAlert>
+
+            <p v-if="foreignActive && changeCount > 0" class="text-body-secondary">
+                {{ $t('gridprofile.DiffFromCurrent', { count: changeCount }) }}
+            </p>
 
         <!-- Manual editing is hidden behind an explicit danger action -->
         <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
@@ -270,7 +286,7 @@ import { gridProfilePresets, type GridProfilePreset } from '@/types/GridProfileP
 import type { GridProfileRawdata } from '@/types/GridProfileRawdata';
 import type { GridProfileSection, GridProfileStatus, GridProfileValue } from '@/types/GridProfileStatus';
 import { authHeader, handleResponse } from '@/utils/authentication';
-import { BIconExclamationTriangle, BIconInfoSquare } from 'bootstrap-icons-vue';
+import { BIconArrowReturnRight, BIconExclamationTriangle, BIconInfoSquare } from 'bootstrap-icons-vue';
 import { defineComponent, type PropType } from 'vue';
 import StatusBadge from './StatusBadge.vue';
 
@@ -281,6 +297,7 @@ function toHex(x: number): string {
 export default defineComponent({
     components: {
         BootstrapAlert,
+        BIconArrowReturnRight,
         BIconExclamationTriangle,
         BIconInfoSquare,
         StatusBadge,
@@ -296,6 +313,9 @@ export default defineComponent({
             writeMode: false,
             selectedPreset: '',
             editMode: false,
+            // Decoded form of a foreign profile (preset / pasted) to be written,
+            // used to diff its values against the profile currently on the inverter.
+            writeDecoded: null as GridProfileStatus | null,
             workingRaw: [] as number[],
             pasteRaw: '',
             acknowledgeRisk: false,
@@ -329,12 +349,37 @@ export default defineComponent({
         editing(): boolean {
             return this.writeMode && this.editMode && !this.presetLoaded;
         },
+        // A foreign profile (preset / pasted, decoded by the backend) is being shown.
+        foreignActive(): boolean {
+            return this.writeDecoded !== null;
+        },
+        // We are comparing a to-be-written profile against the inverter's current one.
+        comparing(): boolean {
+            return this.editing || this.foreignActive;
+        },
+        // Sections to display: the foreign profile when one is loaded, else the device's.
+        displaySections(): GridProfileSection[] {
+            if (this.foreignActive) {
+                return this.writeDecoded?.sections ?? [];
+            }
+            return this.gridProfileList.sections ?? [];
+        },
+        // Map parameter name -> value for the profile currently on the inverter.
+        deviceValues(): Record<string, number> {
+            const map: Record<string, number> = {};
+            for (const section of this.gridProfileList.sections ?? []) {
+                for (const item of section.items) {
+                    map[item.n] = item.v;
+                }
+            }
+            return map;
+        },
         changeCount(): number {
-            if (!this.editing) {
+            if (!this.comparing) {
                 return 0;
             }
             let count = 0;
-            for (const section of this.gridProfileList.sections ?? []) {
+            for (const section of this.displaySections) {
                 count += this.sectionChangeCount(section);
             }
             return count;
@@ -368,6 +413,7 @@ export default defineComponent({
             this.writeMode = false;
             this.selectedPreset = '';
             this.editMode = false;
+            this.writeDecoded = null;
             const raw = this.gridProfileRawList.raw;
             this.workingRaw = raw ? raw.slice() : [];
             this.acknowledgeRisk = false;
@@ -378,6 +424,7 @@ export default defineComponent({
             this.writeMode = false;
             this.selectedPreset = '';
             this.editMode = false;
+            this.writeDecoded = null;
             const raw = this.gridProfileRawList.raw;
             this.workingRaw = raw ? raw.slice() : [];
             this.pasteRaw = this.workingHex();
@@ -390,24 +437,46 @@ export default defineComponent({
                 // Back to the device's current profile (editable).
                 const raw = this.gridProfileRawList.raw;
                 this.workingRaw = raw ? raw.slice() : [];
+                this.writeDecoded = null;
             } else {
                 const preset = this.presets.find((p) => p.key === this.selectedPreset);
                 if (preset) {
                     this.workingRaw = preset.raw.slice();
                     this.editMode = false; // cannot structure-edit a foreign preset
+                    this.decodeWorking();
                 }
             }
             this.pasteRaw = this.workingHex();
         },
+        // Ask the backend to decode workingRaw into named sections/values so its
+        // values can be diffed against the profile on the inverter.
+        decodeWorking() {
+            const formData = new FormData();
+            formData.append('data', JSON.stringify({ raw: this.workingRaw }));
+            fetch('/api/gridprofile/decode', {
+                method: 'POST',
+                headers: authHeader(),
+                body: formData,
+            })
+                .then((response) => handleResponse(response, this.$emitter, this.$router))
+                .then((data) => {
+                    this.writeDecoded = data as GridProfileStatus;
+                })
+                .catch(() => {
+                    this.writeDecoded = null;
+                });
+        },
         enableEditMode() {
             if (!this.presetLoaded) {
                 this.editMode = true;
+                this.writeDecoded = null;
             }
         },
         discardEdits() {
             const raw = this.gridProfileRawList.raw;
             this.workingRaw = raw ? raw.slice() : [];
             this.editMode = false;
+            this.writeDecoded = null;
             this.showWriteAlert = false;
         },
         // Decode the (signed int16) value currently held in the working buffer.
@@ -447,14 +516,25 @@ export default defineComponent({
         stepFor(item: GridProfileValue): number | string {
             return item.d && item.d !== 0 ? 1 / item.d : 'any';
         },
-        isChanged(item: GridProfileValue): boolean {
-            if (item.o === undefined) {
-                return false;
+        // The value that will be written for this row (edited value when manually
+        // editing the device profile, otherwise the row's own value).
+        displayValue(item: GridProfileValue): number {
+            return this.editing ? this.readValue(item) : item.v;
+        },
+        // The value currently on the inverter for this parameter (by name), if any.
+        deviceValue(item: GridProfileValue): number | undefined {
+            return this.deviceValues[item.n];
+        },
+        // Whether the to-be-written value differs from what is on the inverter.
+        rowChanged(item: GridProfileValue): boolean {
+            const current = this.deviceValue(item);
+            if (current === undefined) {
+                return true; // parameter not present on the inverter -> new
             }
-            return Math.abs(this.readValue(item) - item.v) > 1e-9;
+            return Math.abs(this.displayValue(item) - current) > 1e-9;
         },
         sectionChangeCount(section: GridProfileSection): number {
-            return section.items.filter((item) => this.isChanged(item)).length;
+            return section.items.filter((item) => this.rowChanged(item)).length;
         },
         parseRawBytes(input: string): number[] | null {
             const tokens = input
@@ -482,6 +562,7 @@ export default defineComponent({
             this.selectedPreset = '';
             this.editMode = false;
             this.workingRaw = bytes;
+            this.decodeWorking();
             this.writeAlertType = 'info';
             this.writeAlertMessage = this.$t('gridprofile.Loaded');
             this.showWriteAlert = true;

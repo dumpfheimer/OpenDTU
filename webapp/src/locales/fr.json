@@ -235,7 +235,10 @@
         "DiscardEdits": "Annuler les modifications",
         "ManualEditDanger": "Vous modifiez des valeurs de protection réseau individuelles. Des valeurs incorrectes peuvent être dangereuses et enfreindre votre code de réseau — ne modifiez que des valeurs que vous comprenez parfaitement, et uniquement vers des valeurs autorisées par votre gestionnaire de réseau.",
         "ChangeProfile": "Modifier le profil réseau",
-        "Cancel": "Annuler"
+        "Cancel": "Annuler",
+        "CurrentValue": "Actuel",
+        "NewParam": "Nouveau paramètre (absent de l'onduleur)",
+        "DiffFromCurrent": "{count} valeur(s) diffèrent du profil sur votre onduleur — surlignées ci-dessous."
     },
     "systeminfo": {
         "SystemInfo": "Informations sur le système",

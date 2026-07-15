@@ -18,6 +18,68 @@ void WebApiGridProfileClass::init(AsyncWebServer& server, Scheduler& scheduler)
     server.on("/api/gridprofile/status", HTTP_GET, static_cast<ArRequestHandlerFunction>(std::bind(&WebApiGridProfileClass::onGridProfileStatus, this, _1)));
     server.on("/api/gridprofile/rawdata", HTTP_GET, static_cast<ArRequestHandlerFunction>(std::bind(&WebApiGridProfileClass::onGridProfileRawdata, this, _1)));
     server.on("/api/gridprofile/write", HTTP_POST, static_cast<ArRequestHandlerFunction>(std::bind(&WebApiGridProfileClass::onGridProfileWrite, this, _1)));
+    server.on("/api/gridprofile/decode", HTTP_POST, static_cast<ArRequestHandlerFunction>(std::bind(&WebApiGridProfileClass::onGridProfileDecode, this, _1)));
+}
+
+// Decodes arbitrary profile bytes (e.g. a preset the webapp is about to write) into
+// named sections/values, without touching the stored per-inverter profile. Used by
+// the UI to preview a profile and diff it against the one on the inverter.
+void WebApiGridProfileClass::onGridProfileDecode(AsyncWebServerRequest* request)
+{
+    if (!WebApi.checkCredentialsReadonly(request)) {
+        return;
+    }
+
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    JsonDocument root;
+    if (!WebApi.parseRequestData(request, response, root)) {
+        return;
+    }
+
+    auto& retRoot = response->getRoot();
+
+    if (!root["raw"].is<JsonArray>()) {
+        retRoot["message"] = "Values are missing!";
+        retRoot["code"] = WebApiError::GenericValueMissing;
+        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+        return;
+    }
+
+    auto rawArray = root["raw"].as<JsonArray>();
+    std::vector<uint8_t> data;
+    data.reserve(rawArray.size());
+    for (auto value : rawArray) {
+        data.push_back(value.as<uint8_t>());
+    }
+
+    if (data.size() < 6 || data.size() > 256) {
+        retRoot["message"] = "Grid profile data has an invalid length!";
+        retRoot["code"] = WebApiError::GridProfileInvalidData;
+        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+        return;
+    }
+
+    retRoot["name"] = GridProfileParser::decodeProfileName(data.data());
+    retRoot["version"] = GridProfileParser::decodeProfileVersion(data.data());
+
+    auto jsonSections = retRoot["sections"].to<JsonArray>();
+    auto profSections = GridProfileParser::decodeProfile(data.data(), static_cast<uint16_t>(data.size()));
+    for (auto& profSection : profSections) {
+        auto jsonSection = jsonSections.add<JsonObject>();
+        jsonSection["name"] = profSection.SectionName;
+
+        auto jsonItems = jsonSection["items"].to<JsonArray>();
+        for (auto& profItem : profSection.items) {
+            auto jsonItem = jsonItems.add<JsonObject>();
+            jsonItem["n"] = profItem.Name;
+            jsonItem["u"] = profItem.Unit;
+            jsonItem["v"] = profItem.Value;
+            jsonItem["o"] = profItem.Offset;
+            jsonItem["d"] = profItem.Divider;
+        }
+    }
+
+    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
 
 void WebApiGridProfileClass::onGridProfileStatus(AsyncWebServerRequest* request)

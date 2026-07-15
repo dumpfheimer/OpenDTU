@@ -45,6 +45,12 @@ public:
 
     std::list<GridProfileSection_t> getProfile() const;
 
+    // Decode arbitrary profile bytes (e.g. a preset) without touching the stored
+    // per-inverter profile. Uses only the static decode tables.
+    static std::list<GridProfileSection_t> decodeProfile(const uint8_t* data, const uint16_t length);
+    static String decodeProfileName(const uint8_t* data);
+    static String decodeProfileVersion(const uint8_t* data);
+
     bool containsValidData() const;
 
     void setLastWriteCommandSuccess(const LastCommandSuccess status);

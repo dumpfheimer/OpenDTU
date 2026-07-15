@@ -235,7 +235,10 @@
         "DiscardEdits": "Discard edits",
         "ManualEditDanger": "You are editing individual grid-protection values. Wrong values can be unsafe and may violate your grid code — only change values you fully understand, and only to values authorized by your grid operator.",
         "ChangeProfile": "Change grid profile",
-        "Cancel": "Cancel"
+        "Cancel": "Cancel",
+        "CurrentValue": "Current",
+        "NewParam": "New parameter (not on the inverter)",
+        "DiffFromCurrent": "{count} value(s) differ from the profile on your inverter — highlighted below."
     },
     "systeminfo": {
         "SystemInfo": "System Info",

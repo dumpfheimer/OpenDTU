@@ -389,8 +389,13 @@ void GridProfileParser::appendFragment(const uint8_t offset, const uint8_t* payl
 
 String GridProfileParser::getProfileName() const
 {
+    return decodeProfileName(_payloadGridProfile);
+}
+
+String GridProfileParser::decodeProfileName(const uint8_t* data)
+{
     for (auto& ptype : _profileTypes) {
-        if (ptype.lIdx == _payloadGridProfile[0] && ptype.hIdx == _payloadGridProfile[1]) {
+        if (ptype.lIdx == data[0] && ptype.hIdx == data[1]) {
             return ptype.Name;
         }
     }
@@ -399,10 +404,13 @@ String GridProfileParser::getProfileName() const
 
 String GridProfileParser::getProfileVersion() const
 {
+    return decodeProfileVersion(_payloadGridProfile);
+}
+
+String GridProfileParser::decodeProfileVersion(const uint8_t* data)
+{
     char buffer[10];
-    HOY_SEMAPHORE_TAKE();
-    snprintf(buffer, sizeof(buffer), "%d.%d.%d", (_payloadGridProfile[2] >> 4) & 0x0f, _payloadGridProfile[2] & 0x0f, _payloadGridProfile[3]);
-    HOY_SEMAPHORE_GIVE();
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d", (data[2] >> 4) & 0x0f, data[2] & 0x0f, data[3]);
     return buffer;
 }
 
@@ -419,13 +427,18 @@ std::vector<uint8_t> GridProfileParser::getRawData() const
 
 std::list<GridProfileSection_t> GridProfileParser::getProfile() const
 {
+    return decodeProfile(_payloadGridProfile, _gridProfileLength);
+}
+
+std::list<GridProfileSection_t> GridProfileParser::decodeProfile(const uint8_t* data, const uint16_t length)
+{
     std::list<GridProfileSection_t> l;
 
-    if (_gridProfileLength > 4) {
+    if (length > 4) {
         uint16_t pos = 4;
         do {
-            const uint8_t section_id = _payloadGridProfile[pos];
-            const uint8_t section_version = _payloadGridProfile[pos + 1];
+            const uint8_t section_id = data[pos];
+            const uint8_t section_version = data[pos + 1];
             const int16_t section_start = getSectionStart(section_id, section_version);
             const uint8_t section_size = getSectionSize(section_id, section_version);
             pos += 2;
@@ -446,7 +459,7 @@ std::list<GridProfileSection_t> GridProfileParser::getProfile() const
             for (uint8_t val_id = 0; val_id < section_size; val_id++) {
                 auto itemDefinition = itemDefinitions.at(_profileValues[section_start + val_id].ItemDefinition);
 
-                float value = static_cast<int16_t>((_payloadGridProfile[pos] << 8) | _payloadGridProfile[pos + 1]);
+                float value = static_cast<int16_t>((data[pos] << 8) | data[pos + 1]);
                 value /= itemDefinition.Divider;
 
                 GridProfileItem_t v;
@@ -462,7 +475,7 @@ std::list<GridProfileSection_t> GridProfileParser::getProfile() const
 
             l.push_back(section);
 
-        } while (pos < _gridProfileLength);
+        } while (pos < length);
     }
 
     return l;
